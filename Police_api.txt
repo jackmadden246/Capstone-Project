@@ -24,10 +24,10 @@ def lambda_handler(event, context):
         category = crime_stats[0]
         outcome_status = crime_stats[1]
         name = crime_stats[2]
-        SQL = '''
-        INSERT IGNORE INTO 'Crime_stats'
-        VALUES ("{}", "{}", "{}", "{}")
-        '''.format(postcode_1, category, outcome_status, name)
+        SQL = """
+        INSERT IGNORE INTO db6.Crime_stats(Postcode, Category, Outcome_status, Name)
+        VALUES ("{0}", "{1}", "{2}", "{3}")
+        """.format(postcode_1, category, outcome_status, name)
         cur.execute(SQL) 
         conn.commit()
         conn.close()

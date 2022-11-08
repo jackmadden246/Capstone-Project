@@ -32,10 +32,10 @@ def lambda_handler(event, context):
         proposal = planning_details[1]
         address = planning_details[2]
         category = planning_details[3]
-        SQL = '''
-        INSERT IGNORE INTO 'Planning_Permission'
-        VALUES ("{}", "{}", "{}", "{}", "{}")
-        '''.format(postcode_1, proposal, address, category)
+        SQL = """
+        INSERT IGNORE INTO db6.Planning_Permission(Postcode, Proposal, Address, Category)
+        VALUES ("{0}","{1}","{2}","{3}")
+        """.format(postcode_1, proposal, address, category)
         
     # SQL = "INSERT IGNORE INTO 'Planning_Permission' VALUES(%s, %s, %s, %s)"
     #     cur.execute(SQL, (planning_details[0]['postcode'], planning_details[0]['proposal'], planning_details[0]['address'], 
@@ -43,11 +43,11 @@ def lambda_handler(event, context):
         cur.execute(SQL)
         conn.commit()
         conn.close()
-        return {
-        'statusCode': 200,
-        'body': json.dumps(event) 
-          }
-    
+    return {
+    'statusCode': 200,
+    'body': json.dumps(event) 
+      }
+
     
 def connect_to_db():
     conn = pymysql.connect(
