@@ -19,7 +19,6 @@ def lambda_handler(event, context):
     result = requests.get(url)
     data = json.loads(result.content)
     planning_details = []
-    # data_keys = ['status', 'postcode', 'postcode_type', 'url', 'result_count', 'api_calls_cost', 'data', 'process_time']
     for i in range(0,6):
         planning_details.append(data['postcode'])
         planning_details.append(data['data']['planning_applications'][i]['proposal'])
@@ -36,11 +35,9 @@ def lambda_handler(event, context):
         INSERT IGNORE INTO db6.Planning_Permission(Postcode, Proposal, Address, Category)
         VALUES ("{0}","{1}","{2}","{3}")
         """.format(postcode_1, proposal, address, category)
-        
-    # SQL = "INSERT IGNORE INTO 'Planning_Permission' VALUES(%s, %s, %s, %s)"
-    #     cur.execute(SQL, (planning_details[0]['postcode'], planning_details[0]['proposal'], planning_details[0]['address'], 
-    #     planning_details[0]['category']))
-        cur.execute(SQL)
+        conn.ping() 
+        with conn.cursor() as cursor:
+            cur.execute(SQL)
         conn.commit()
         conn.close()
     return {

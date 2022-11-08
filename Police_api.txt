@@ -11,7 +11,6 @@ def lambda_handler(event, context):
     crime_stats = []
     for i in range(0,10):
       crime_stats.append(data[i]['category'])
-      crime_stats.append(data[i]['outcome_status'])
       crime_stats.append(data[i]['location']['street']['name'])
     print(crime_stats)
     for i,v in enumerate(data):
@@ -22,24 +21,20 @@ def lambda_handler(event, context):
     for item in data:
         postcode_1 = "TW75EX"
         category = crime_stats[0]
-        outcome_status = crime_stats[1]
-        name = crime_stats[2]
+        name = crime_stats[3]
         SQL = """
-        INSERT IGNORE INTO db6.Crime_stats(Postcode, Category, Outcome_status, Name)
-        VALUES ("{0}", "{1}", "{2}", "{3}")
-        """.format(postcode_1, category, outcome_status, name)
-        cur.execute(SQL) 
-        conn.commit()
-        conn.close()
-        # sql = "INSERT IGNORE INTO 'Crime_stats'('Postcode', 'Category', 'Outcome_status', 'Name') VALUES(%s, %s, %s, %s')"
-        # cur.execute(sql, (event['postcode'], crime_stats[0]['category'], crime_stats[0]['outcome_status'], crime_stats[0]['name']))
+        INSERT IGNORE INTO db6.Crime_stats(Postcode, Category, Name)
+        VALUES ("{0}","{1}","{2}")
+        """.format(postcode_1, category, name)
+        conn.ping() 
+        with conn.cursor() as cursor:
+            cur.execute(SQL)
         conn.commit()
         conn.close()
     return {
     'statusCode': 200,
     'body': json.dumps(event) }
   
-    
     
 def connect_to_db():
     conn = pymysql.connect(

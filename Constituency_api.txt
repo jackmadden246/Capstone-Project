@@ -29,34 +29,21 @@ def lambda_handler(event, context):
     cur = conn.cursor()
     for item in data:
         postcode_1 = event['postcode'] 
-        constituency = constituency_res
-        postcodes = nearest_postcodes
-        date_time = "8 November"
-        SQL = """
-        INSERT IGNORE INTO db6.Postcode_constituency(Postcode, Par_constituency, Search_date_time)
-        VALUES ("{0}","{1}","{2}") 
-        """.format(postcode_1, constituency, date_time )
-        SQL_2 = """
-        INSERT IGNORE INTO db6.Nearest_Postcode(Postcode, nearest_postcode)
-        VALUES ("{0}","{1}")
-        """.format(postcode_1, postcodes )
-    # SQL = "INSERT IGNORE INTO 'Postcode_constituency'('Postcode', 'Par_constituency','Search_date_time') VALUES(%s, %s)"
-    #     cur.execute(SQL, (event['postcode'], constituency_res))
-        cur.execute(SQL)
-        cur.execute(SQL_2)
+        constituency = constituency_res[1]
+        postcodes = nearest_postcodes[1]
+        cur.execute("""INSERT IGNORE INTO db6.Postcode_constituency (Postcode, Par_constituency) VALUES ("TW75EX","TW75EY")""")
+        cur.execute("""INSERT IGNORE INTO db6.Nearest_Postcode (Postcode, nearest_postcode) VALUES ("TW7", "TW78NG")""")
+        conn.commit() 
         conn.close()
-      
-        # SQL2 = "INSERT IGNORE INTO 'Nearest_Postcode'('Postcode', 'nearest_postcode') VALUES(%s, %s)"
-        # cur.execute(SQL2, (event['postcode'], nearest_postcodes[0]))
 
- 
-    return {
+
+    return { 
         'statusCode': 200,
         'body': json.dumps(event),
         'parliamentary_constituency': constituency_res,
         'longitude': longitude,
         'latitude': latitude
-           }
+    }
  
 def connect_to_db():
     conn = pymysql.connect(
@@ -67,6 +54,5 @@ def connect_to_db():
         ssl ={'disable_tls': True}
                           )
     cur = conn.cursor()
-    cur.close()
     return conn, cur 
         
