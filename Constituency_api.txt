@@ -1,0 +1,71 @@
+import json
+import requests
+import pymysql
+
+def lambda_handler(event, context):
+    val_url = 'https://api.postcodes.io/postcodes/:{}/validate'.format(event['postcode'])
+    validate = requests.get(val_url)
+    test = json.loads(validate.content)
+    url = 'https://api.postcodes.io/postcodes/{}/'.format(event['postcode'])
+    if len(event['postcode'])< 5 or len(event['postcode'])> 7:
+            raise ValueError("Incorrect length of postcode")
+    else:
+            pass
+    result = requests.get(url)
+    data = json.loads(result.content)
+    constituency_res = data['result']['parliamentary_constituency']
+    print(constituency_res)
+    longitude = data['result']['longitude']
+    latitude = data['result']['latitude']
+  
+    url_2 = 'https://api.postcodes.io/postcodes?lon={}&lat={}'.format(longitude, latitude)
+    result_2 = requests.get(url_2) 
+    data_2 = json.loads(result_2.content)
+    nearest_postcodes = []
+    for item in data_2['result']:
+        nearest_postcodes.append(item['postcode'])
+    print(nearest_postcodes)
+    conn, cur = connect_to_db()  
+    for item in data:
+        postcode_1 = event['postcode']
+        constituency = constituency_res
+        postcodes = nearest_postcodes[0]
+        date_time = "06,11,22"
+        SQL = """
+        INSERT IGNORE INTO 'Postcode_constituency'
+        VALUES ("{}","{}", {}")
+        """.format(postcode_1, constituency, date_time )
+        SQL_2 = """
+        INSERT IGNORE INTO 'Nearest_Postcode'
+        VALUES ("{}","{}")
+        """.format(postcode_1, postcodes )
+    # SQL = "INSERT IGNORE INTO 'Postcode_constituency'('Postcode', 'Par_constituency','Search_date_time') VALUES(%s, %s)"
+    #     cur.execute(SQL, (event['postcode'], constituency_res))
+        cur.execute(SQL)
+        cur.execute(SQL_2)
+        conn.commit()
+        conn.close()
+        # SQL2 = "INSERT IGNORE INTO 'Nearest_Postcode'('Postcode', 'nearest_postcode') VALUES(%s, %s)"
+        # cur.execute(SQL2, (event['postcode'], nearest_postcodes[0]))
+
+ 
+    return {
+        'statusCode': 200,
+        'body': json.dumps(event),
+        'parliamentary_constituency': constituency_res,
+        'longitude': longitude,
+        'latitude': latitude
+           }
+ 
+def connect_to_db():
+    conn = pymysql.connect(
+        host ='lin-11314-6893-mysql-primary.servers.linodedb.net',
+        user ='user_6',
+        password ="2U~3YSp3_X-t7pT3HAo~B-3eJ_zzDh",
+        database ='db6',
+        ssl ={'disable_tls': True}
+                          )
+    cur = conn.cursor()
+    return conn, cur 
+        
+        

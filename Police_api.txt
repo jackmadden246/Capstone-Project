@@ -1,0 +1,56 @@
+import json
+import requests
+import pymysql
+
+def lambda_handler(event, context):
+    longitude = '-0.329623'
+    latitude = '51.478632'
+    url = 'https://data.police.uk/api/crimes-street/all-crime?lat={}&lng={}'.format(latitude, longitude)
+    result = requests.get(url)
+    data = json.loads(result.content)
+    crime_stats = []
+    for i in range(0,10):
+      crime_stats.append(data[i]['category'])
+      crime_stats.append(data[i]['outcome_status'])
+      crime_stats.append(data[i]['location']['street']['name'])
+    print(crime_stats)
+    for i,v in enumerate(data):
+        num_of_results = i
+    print(f'The number of results returned from the API is ' + str(num_of_results))
+    
+    conn, cur = connect_to_db() 
+    for item in data:
+        postcode_1 = "TW75EX"
+        category = crime_stats[0]
+        outcome_status = crime_stats[1]
+        name = crime_stats[2]
+        SQL = '''
+        INSERT IGNORE INTO 'Crime_stats'
+        VALUES ("{}", "{}", "{}", "{}")
+        '''.format(postcode_1, category, outcome_status, name)
+        cur.execute(SQL) 
+        conn.commit()
+        conn.close()
+        # sql = "INSERT IGNORE INTO 'Crime_stats'('Postcode', 'Category', 'Outcome_status', 'Name') VALUES(%s, %s, %s, %s')"
+        # cur.execute(sql, (event['postcode'], crime_stats[0]['category'], crime_stats[0]['outcome_status'], crime_stats[0]['name']))
+        conn.commit()
+        conn.close()
+    return {
+    'statusCode': 200,
+    'body': json.dumps(event) }
+  
+    
+    
+def connect_to_db():
+    conn = pymysql.connect(
+        host ='lin-11314-6893-mysql-primary.servers.linodedb.net',
+        user ='user_6',
+        password ="2U~3YSp3_X-t7pT3HAo~B-3eJ_zzDh",
+        database ='db6',
+        ssl ={'disable_tls': True}
+                         )
+    cur = conn.cursor()
+    return conn, cur
+
+ 
+        

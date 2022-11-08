@@ -1,0 +1,64 @@
+import json
+import requests
+import pymysql
+
+def lambda_handler(event, context):
+    url = 'https://api.propertydata.co.uk/planning?key=NFUWSROEZG&postcode={}'.format(event['postcode'])
+    try: 
+        if len(event['postcode'])< 5 or len(event['postcode'])> 7:
+            raise ValueError("Incorrect length of postcode")
+        else:
+            pass
+    except TypeError:
+        print("Postcode must be a mixture of letters and numbers")
+    else: 
+        if len(event['postcode'])< 5 or len(event['postcode'])> 7:
+            raise ValueError("Incorrect length of postcode")
+        else:
+            pass
+    result = requests.get(url)
+    data = json.loads(result.content)
+    planning_details = []
+    # data_keys = ['status', 'postcode', 'postcode_type', 'url', 'result_count', 'api_calls_cost', 'data', 'process_time']
+    for i in range(0,6):
+        planning_details.append(data['postcode'])
+        planning_details.append(data['data']['planning_applications'][i]['proposal'])
+        planning_details.append(data['data']['planning_applications'][i]['address'])
+        planning_details.append(data['data']['planning_applications'][i]['category'])
+    print(planning_details)
+    conn, cur = connect_to_db() 
+    for item in data:
+        postcode_1 = planning_details[0]
+        proposal = planning_details[1]
+        address = planning_details[2]
+        category = planning_details[3]
+        SQL = '''
+        INSERT IGNORE INTO 'Planning_Permission'
+        VALUES ("{}", "{}", "{}", "{}", "{}")
+        '''.format(postcode_1, proposal, address, category)
+        
+    # SQL = "INSERT IGNORE INTO 'Planning_Permission' VALUES(%s, %s, %s, %s)"
+    #     cur.execute(SQL, (planning_details[0]['postcode'], planning_details[0]['proposal'], planning_details[0]['address'], 
+    #     planning_details[0]['category']))
+        cur.execute(SQL)
+        conn.commit()
+        conn.close()
+        return {
+        'statusCode': 200,
+        'body': json.dumps(event) 
+          }
+    
+    
+def connect_to_db():
+    conn = pymysql.connect(
+        host ='lin-11314-6893-mysql-primary.servers.linodedb.net',
+        user ='user_6',
+        password = "2U~3YSp3_X-t7pT3HAo~B-3eJ_zzDh",
+        database ='db6',
+        ssl ={'disable_tls': True}
+    )
+    cur = conn.cursor()
+    return conn, cur
+          
+  
+  
